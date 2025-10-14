@@ -20,11 +20,10 @@ from flask import render_template
 from flask import send_file
 from flask.wrappers import Response
 
-from jinja2.exceptions import TemplateNotFound
-
 from werkzeug.exceptions import HTTPException
 from werkzeug.exceptions import NotFound
 from werkzeug.exceptions import NotAcceptable
+from werkzeug.exceptions import BadRequest
 
 from rdflib.term import URIRef
 from rdflib.term import Literal
@@ -34,12 +33,11 @@ from rdflib.namespace import SDO
 
 from resources import get_document_datasets
 from utils import uri_to_path
+from utils import response_ok
 from utils import sort_by_predicate
 from utils import remove_file_uris
 from utils import markdown_to_html
-from utils import get_request_host
-from utils import get_request_hostname
-from utils import get_request_proto
+from utils import get_request_url
 from templates import load_templates
 from templates import find_template
 from templates import TEMPLATE_PATH
@@ -53,11 +51,11 @@ app.jinja_env.lstrip_blocks = True
 app.jinja_env.trim_blocks = True
 
 # Custom filters
-app.jinja_env.filters["sort_by_predicate"] = sort_by_predicate
-app.jinja_env.filters["markdown_to_html"] = markdown_to_html
+app.jinja_env.filters["sort_by_predicate"] = sort_by_predicate  # type: ignore
+app.jinja_env.filters["markdown_to_html"] = markdown_to_html  # type: ignore
 
 # Assign the compression defaults based on internal type support
-app.config.setdefault("COMPRESS_MIMETYPES", ACCEPT_MIMETYPES)
+app.config.setdefault("COMPRESS_MIMETYPES", ACCEPT_MIMETYPES)  # type: ignore
 
 # Load configuration from environment variables if available
 app.config.from_prefixed_env()
@@ -81,9 +79,7 @@ def get_document(path: str = "/") -> Response:
     """Return a document-scoped collection of CBDs in the client-preferrec format."""
 
     # Find the document graph based on original client-facing URI
-    document_uri = URIRef(
-        value=path, base=f"{get_request_proto()}://{get_request_host()}"
-    )
+    document_uri = get_request_url()
 
     if document_uri not in app_datasets:
         raise NotFound()
@@ -137,7 +133,7 @@ def get_document(path: str = "/") -> Response:
         debug(f"Serving static document from {document_file_path}")
 
         # Attempt to use X-Accel-Redirect if enables for nginx
-        if app.config.get("USE_X_ACCEL_REDIRECT") in ("true", "True", True, 1, "1"):
+        if app.config.get("USE_X_ACCEL_REDIRECT") in ("true", "True", True, 1, "1"):  # type: ignore
             return Response(
                 status=HTTPStatus.OK,
                 headers={"X-Accel-Redirect": document_file_path},
@@ -167,8 +163,8 @@ def get_document(path: str = "/") -> Response:
         )
         template_name, template_type = find_template(
             uri=document_uri,
-            type_uris=document_type_uris,
             app_templates=app_templates,
+            type_uris=document_type_uris,
         )
         if template_name:
             html_string = render_template(
@@ -205,7 +201,7 @@ def request_preprocess() -> Response | None:
                 ).replace(tzinfo=timezone.utc)
             except ValueError:
                 error(f'Malformed If-Modified-Since header: "{modified_since_header}"')
-                return Response(status=HTTPStatus.BAD_REQUEST)
+                raise BadRequest()
             if app_startup < modified_since_utc:
                 return Response(status=HTTPStatus.NOT_MODIFIED)
 
@@ -216,11 +212,7 @@ def request_preprocess() -> Response | None:
 def request_postprocess(response: Response) -> Response:
     """Performs common postprocessing on the response."""
 
-    if (
-        response.status_code >= 200
-        and response.status_code < 400
-        and request.method in ("GET", "HEAD")
-    ):
+    if response_ok(response.status_code) and request.method in ("GET", "HEAD"):
         response.headers.set(
             "Last-Modified",
             app_startup.strftime(HTTP_HEADER_DATE_FORMAT),
@@ -256,26 +248,27 @@ def handle_error(exc: Exception) -> Response:
         status_name = HTTPStatus.INTERNAL_SERVER_ERROR.phrase
         status_description = HTTPStatus.INTERNAL_SERVER_ERROR.description
 
-    if (
-        status_code != HTTPStatus.NOT_ACCEPTABLE.value
-        and request.accept_mimetypes.provided
-        and "text/html" in request.accept_mimetypes
-    ):
+    if request.accept_mimetypes.provided and "text/html" in request.accept_mimetypes:
         try:
-            response = render_template(
-                template_name_or_list=[
-                    f"{get_request_hostname()}/_{status_code}.html",
-                    f"{get_request_hostname()}/_error.html",
-                    f"_{status_code}.html",
-                    "_error.html",
-                ],
-                app_debug=app.debug,
-                error_code=status_code,
-                error_title=status_name,
-                error_description=status_description,
-                error_message=format_exc() if app.debug else str(exc),
+            document_uri = get_request_url()
+            template_name, template_type = find_template(
+                uri=document_uri,
+                app_templates=app_templates,
+                http_status=HTTPStatus(value=status_code),
             )
-        except TemplateNotFound as ex:
+            if template_name:
+                html_string = render_template(
+                    app_debug=app.debug,
+                    template_name_or_list=template_name,
+                    template_type=template_type,
+                    error_code=status_code,
+                    error_title=status_name,
+                    error_description=status_description,
+                    error_message=format_exc() if app.debug else str(exc),
+                )
+                return Response(response=html_string, mimetype="text/html")
+            warning(f"Unable to find error template for {document_uri.n3()}")
+        except Exception as ex:
             error(ex)
 
     return Response(response=response, status=status_code)

@@ -3,7 +3,7 @@
 {% set foaf_name = document_graph.namespace_manager.absolutize("http://xmlns.com/foaf/0.1/name") %}
 {% set webid_uri = document_graph.value(subject=document_uri, predicate=foaf_primary_topic) %}
 {% block main %}
-<section id="{{ webid_uri }}">
-    <h1 property="{{ foaf_name }}">{{ document_graph.value(subject=webid_uri, predicate=foaf_name) }}</h1>
-</section>
+    <section id="{{ webid_uri }}">
+      <h1 property="{{ foaf_name }}">{{ document_graph.value(subject=webid_uri, predicate=foaf_name) }}</h1>
+    </section>
 {% endblock %}
