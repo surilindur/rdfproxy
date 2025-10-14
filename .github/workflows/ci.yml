@@ -83,7 +83,7 @@ jobs:
           curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/blog/post
       - name: Test HTTP redirection for owl:sameAs
         run: |
-          curl --head --fail-with-body --header http://localhost:8000/redirected
+          curl --head --fail-with-body http://localhost:8000/redirected
       - name: Stop application container
         if: always()
         run: docker stop rdfdp
