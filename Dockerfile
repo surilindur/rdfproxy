@@ -1,5 +1,7 @@
 FROM python:alpine
 
+RUN apk add build-base
+
 ADD ./rdfdp /opt/rdfdp
 ADD ./example /usr/share/rdfdpdata
 ADD ./requirements.txt /opt/rdfdp/requirements.txt
@@ -9,6 +11,8 @@ WORKDIR /opt/rdfdp
 RUN pip install --upgrade pip setuptools
 RUN pip install -r requirements.txt
 RUN pip install gunicorn[gevent]>=23.0.0
+
+RUN apk del build-base
 
 ENV DATA_PATH=/usr/share/rdfdpdata/data
 ENV QUERIES_PATH=/usr/share/rdfdpdata/queries
