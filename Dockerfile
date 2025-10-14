@@ -1,6 +1,6 @@
 FROM python:alpine
 
-RUN apk add build-base
+RUN apk add build-base libstdc++
 
 ADD ./rdfdp /opt/rdfdp
 ADD ./example /usr/share/rdfdpdata
