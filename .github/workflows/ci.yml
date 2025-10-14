@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+     - cron: "0 0 * * 6"
 
 env:
   DEFAULT_PYTHON_VERSION: 3
@@ -21,9 +23,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Use Python ${{ env.DEFAULT_PYTHON_VERSION }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: pip
@@ -45,7 +47,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Build application image
         run: docker build --tag rdfdp:dev .
       - name: Create application container
@@ -54,34 +56,34 @@ jobs:
       - name: Start application container
         run: docker start rdfdp
       - name: Wait for application to be available
-        run: curl -I --retry 20 --retry-all-errors --retry-delay 1 http://localhost:8000/
+        run: curl --head --retry 20 --retry-all-errors --retry-delay 1 http://localhost:8000/
       - name: Test document conversion for HTML
         run: |
-          curl -I -H "accept: text/html" http://localhost:8000/
+          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/
       - name: Test document conversion for Turtle
         run: |
-          curl -I -H "accept: text/turtle" http://localhost:8000/
+          curl --head --fail-with-body --header "accept: text/turtle" http://localhost:8000/
       - name: Test document conversion for N3
         run: |
-          curl -I -H "accept: text/n3" http://localhost:8000/
+          curl --head --fail-with-body --header "accept: text/n3" http://localhost:8000/
       - name: Test document conversion for N-Triples
         run: |
-          curl -I -H "accept: application/n-triples" http://localhost:8000/
+          curl --head --fail-with-body --header "accept: application/n-triples" http://localhost:8000/
       - name: Test document conversion for JSON-LD
         run: |
-          curl -I -H "accept: application/ld+json" http://localhost:8000/
+          curl --head --fail-with-body --header "accept: application/ld+json" http://localhost:8000/
       - name: Test document conversion for RDF+XML
         run: |
-          curl -I -H "accept: application/rdf+xml" http://localhost:8000/
+          curl --head --fail-with-body --header "accept: application/rdf+xml" http://localhost:8000/
       - name: Test document conversion for HTML with type-specific template
         run: |
-          curl -I -H "accept: text/html" http://localhost:8000/webid
+          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/webid
       - name: Test document conversion for HTML with Markdown
         run: |
-          curl -I -H "accept: text/html" http://localhost:8000/blog/post
+          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/blog/post
       - name: Test HTTP redirection for owl:sameAs
         run: |
-          curl -I http://localhost:8000/redirected
+          curl --head --fail-with-body http://localhost:8000/redirected
       - name: Stop application container
         if: always()
         run: docker stop rdfdp

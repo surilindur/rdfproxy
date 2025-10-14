@@ -67,7 +67,6 @@ For examples, see the definitions in the [example](./example/) directory.
 
 The template is selected based on the types of the document URI.
 For example, if the document URI is declared as having `rdf:type` of `schema:BlogPosting`, then `BlogPosting.html` is selected as the template.
-The fallback default template name is `_default.html`.
 The fallback error template name is `_error.html`, and HTTP status code errors use templates such as `_500.html`.
 
 The following variables are made available to the templates:

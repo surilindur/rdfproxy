@@ -1,5 +1,6 @@
 """Utiliies for templates."""
 
+from http import HTTPStatus
 from typing import Set
 from typing import Tuple
 from typing import Dict
@@ -13,6 +14,7 @@ from rdflib.term import URIRef
 
 from utils import env_to_path
 from utils import find_files
+from utils import response_ok
 
 # List of acceptable template extensions
 TEMPLATE_EXTENSIONS: Set[str] = set((".html",))
@@ -21,8 +23,7 @@ TEMPLATE_EXTENSIONS: Set[str] = set((".html",))
 TEMPLATE_PATH = env_to_path("TEMPLATE_PATH")
 
 # Defaults
-DEFAULT_DOMAIN = "_"
-DEFAULT_TEMPLATE = "_default.html"
+DEFAULT_DOMAIN = "@defaultdomain"
 
 
 @cache
@@ -45,26 +46,40 @@ def load_templates() -> Dict[str, Dict[str, str]]:
 
 def find_template(
     uri: URIRef,
-    type_uris: Iterable[URIRef],
     app_templates: Dict[str, Dict[str, str]],
+    type_uris: Iterable[URIRef] | None = None,
+    http_status: HTTPStatus | None = None,
 ) -> Tuple[str | None, str | None]:
     """Attempts to locate the template for a resource with the specified types."""
 
-    parsed_uri = urlparse(uri)
-
-    domain = (
-        parsed_uri.hostname if parsed_uri.hostname in app_templates else DEFAULT_DOMAIN
-    )
+    uri_domain = urlparse(uri).hostname
+    domain = uri_domain if uri_domain in app_templates else DEFAULT_DOMAIN
 
     if domain in app_templates:
         domain_templates = app_templates[domain]
+        template_path: str | None = None
+        type_name: str | None = None
 
-        for type_uri in type_uris:
-            type_uri_parsed = urlparse(type_uri)
-            type_name = type_uri_parsed.fragment or type_uri_parsed.path.split("/")[-1]
-            if type_name in domain_templates:
-                template_path = domain_templates[type_name]
-                debug(f"Mapped {uri.n3()} to template {template_path}")
-                return template_path, type_name
+        if type_uris:
+            for type_uri in sorted(type_uris):
+                type_uri_parsed = urlparse(type_uri)
+                type_name = (
+                    type_uri_parsed.fragment or type_uri_parsed.path.split("/")[-1]
+                )
+                if type_name in domain_templates:
+                    template_path = domain_templates[type_name]
+
+        elif http_status:
+            template_name = f"_{http_status.value}"
+            if template_name in domain_templates:
+                template_path = domain_templates[template_name]
+                type_name = str(http_status.value)
+            elif not response_ok(http_status.value) and "_error" in domain_templates:
+                template_path = domain_templates["_error"]
+                type_name = "Error"
+
+        if template_path and type_name:
+            debug(f"Mapped {uri.n3()} to template {template_path}")
+            return template_path, type_name
 
     return None, None

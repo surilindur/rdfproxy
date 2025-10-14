@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    {% if document_graph %}
-    {% for predicate, object in document_graph.predicate_objects(subject=document_uri, unique=True) %}
-    <meta property="{{ predicate }}" content="{{ object }}" />
-    {% endfor %}
-    {% endif %}
-    <title>RDF Document Proxy</title>
+  {% if document_graph %}
+  {% for predicate, object in document_graph.predicate_objects(subject=document_uri, unique=True) %}
+  <meta property="{{ predicate }}" content="{{ object }}" />
+  {% endfor %}
+  {% endif %}
+  <title>RDF Document Proxy</title>
 </head>
-<body>
-    <header>
-        <h1>Example</h1>
-    </header>
-    <main>
-        {% block main %}{% endblock %}
-    </main>
-    <footer>
-        <p>© {{ current_year }}</p>
-    </footer>
+<body {% if template_type %}class="{{ template_type }}"{% endif %}>
+  <header>
+    <h1>Example</h1>
+  </header>
+  <main>
+    {% block main %}{% endblock %}
+  </main>
+  <footer>
+    <p>© {{ current_year }}</p>
+  </footer>
 </body>
 </html>

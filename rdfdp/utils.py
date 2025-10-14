@@ -28,19 +28,17 @@ render_html = Markdown(
 )
 
 
-def get_request_host() -> str:
-    """Helper function to get request host with post number."""
-    return request.headers.get(key="x-forwarded-host", default=request.host)
+def get_request_url() -> URIRef:
+    """Helper function to get request URL as a URIRef."""
+    request_host = request.headers.get(key="x-forwarded-host", default=request.host)
+    request_proto = request.headers.get(key="x-forwarded-proto", default=request.scheme)
+    parsed_url = urlparse(f"{request_proto}://{request_host}{request.path}").geturl()
+    return URIRef(parsed_url)
 
 
-def get_request_hostname() -> str | None:
-    """Helper function to get request host without port number."""
-    return urlparse(f"http://{get_request_host()}/").hostname
-
-
-def get_request_proto() -> str:
-    """Helper function to get the request protocol."""
-    return request.headers.get(key="x-forwarded-proto", default=request.scheme)
+def response_ok(code: int) -> bool:
+    """Helper to check if the response code is in the okay range."""
+    return 200 <= code < 400
 
 
 def get_file_sha256sum(path: Path) -> str:
@@ -115,8 +113,8 @@ def markdown_to_html(markdown: str) -> str:
 def sort_by_predicate(
     subjects: Iterable[_SubjectType],
     graph: Graph,
-    predicate=URIRef,
-    reverse=False,
+    predicate: URIRef,
+    reverse: bool = False,
 ) -> Iterable[_ObjectType]:
     """Jinja filter for sorting subjects in a graph based on a predicate value."""
 
