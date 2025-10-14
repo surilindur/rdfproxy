@@ -38,7 +38,7 @@ def get_request_url() -> URIRef:
 
 def response_ok(code: int) -> bool:
     """Helper to check if the response code is in the okay range."""
-    return code >= 200 and code < 400
+    return 200 <= code < 400
 
 
 def get_file_sha256sum(path: Path) -> str:

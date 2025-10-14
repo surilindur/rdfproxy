@@ -75,6 +75,7 @@ app_startup = datetime.now(tz=timezone.utc)
 
 @app.get("/")
 @app.get("/<path:path>")
+# pylint: disable-next=unused-argument
 def get_document(path: str = "/") -> Response:
     """Return a document-scoped collection of CBDs in the client-preferrec format."""
 
@@ -133,7 +134,13 @@ def get_document(path: str = "/") -> Response:
         debug(f"Serving static document from {document_file_path}")
 
         # Attempt to use X-Accel-Redirect if enables for nginx
-        if app.config.get("USE_X_ACCEL_REDIRECT") in ("true", "True", True, 1, "1"):  # type: ignore
+        if app.config.get("USE_X_ACCEL_REDIRECT") in (  # type: ignore
+            "true",
+            "True",
+            True,
+            1,
+            "1",
+        ):
             return Response(
                 status=HTTPStatus.OK,
                 headers={"X-Accel-Redirect": document_file_path},
@@ -199,9 +206,9 @@ def request_preprocess() -> Response | None:
                     modified_since_header,
                     HTTP_HEADER_DATE_FORMAT,
                 ).replace(tzinfo=timezone.utc)
-            except ValueError:
+            except ValueError as ex:
                 error(f'Malformed If-Modified-Since header: "{modified_since_header}"')
-                raise BadRequest()
+                raise BadRequest() from ex
             if app_startup < modified_since_utc:
                 return Response(status=HTTPStatus.NOT_MODIFIED)
 
@@ -268,6 +275,7 @@ def handle_error(exc: Exception) -> Response:
                 )
                 return Response(response=html_string, mimetype="text/html")
             warning(f"Unable to find error template for {document_uri.n3()}")
+        # pylint: disable-next=broad-exception-caught
         except Exception as ex:
             error(ex)
 
