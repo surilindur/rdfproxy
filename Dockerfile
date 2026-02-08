@@ -1,26 +1,21 @@
 FROM python:alpine
 
-RUN apk add build-base libstdc++
+RUN apk add --no-cache build-base libstdc++
 
-ADD ./rdfdp /opt/rdfdp
-ADD ./example /usr/share/rdfdpdata
-ADD ./requirements.txt /opt/rdfdp/requirements.txt
+ADD ./rdfgp /opt/rdfgp
+ADD ./example/templates /usr/share/rdfgp
+ADD ./requirements.txt /opt/rdfgp/requirements.txt
 
-WORKDIR /opt/rdfdp
+RUN adduser --disabled-password --uid 1000 --shell /bin/sh python
+RUN chown --recursive python:python /opt/rdfgp
 
-RUN pip install --upgrade pip setuptools
-RUN pip install -r requirements.txt
-RUN pip install gunicorn[gevent]>=23.0.0
+USER python
 
-RUN apk del build-base
+WORKDIR /opt/rdfgp
 
-ENV DATA_PATH=/usr/share/rdfdpdata/data
-ENV QUERIES_PATH=/usr/share/rdfdpdata/queries
-ENV TEMPLATE_PATH=/usr/share/rdfdpdata/templates
-
-RUN adduser --no-create-home --disabled-password --uid 1000 --shell /bin/sh rdfdp
-
-USER rdfdp
+RUN pip install --no-cache-dir --user --upgrade pip setuptools
+RUN pip install --no-cache-dir --user --requirement requirements.txt
+RUN pip install --no-cache-dir --user gunicorn[gevent]
 
 EXPOSE 8000
 

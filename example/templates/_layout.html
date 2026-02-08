@@ -1,22 +1,17 @@
+{% set schema_name = graph.namespace_manager.absolutize("https://schema.org/name") %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  {% if document_graph %}
-  {% for predicate, object in document_graph.predicate_objects(subject=document_uri, unique=True) %}
-  <meta property="{{ predicate }}" content="{{ object }}" />
-  {% endfor %}
-  {% endif %}
-  <title>RDF Document Proxy</title>
-</head>
-<body {% if template_type %}class="{{ template_type }}"{% endif %}>
+
+<body {% if type %}class="{{ type }}" {% endif %}>
   <header>
-    <h1>Example</h1>
+    <h1>{{ graph.value(graph.identifier, schema_name) }}</h1>
   </header>
   <main>
     {% block main %}{% endblock %}
   </main>
   <footer>
-    <p>© {{ current_year }}</p>
+    <p>© {{ timestamp.isoformat() }}</p>
   </footer>
 </body>
+
 </html>

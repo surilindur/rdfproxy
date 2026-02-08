@@ -20,15 +20,17 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Use Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: pip
+      - name: Update pip and setuptools
+        run: python -m pip install --upgrade pip setuptools
       - name: Install project dependencies
         run: python -m pip install -r requirements.txt
       - name: Install pylint
@@ -39,22 +41,27 @@ jobs:
     name: Test
     needs: lint
     strategy:
-      fail-fast: false
       matrix:
         os:
           - ubuntu-24.04
           - ubuntu-24.04-arm
+        tool:
+          - docker
+          - podman
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
+      - name: Build Apache Jena container
+        run: ${{ matrix.tool }} compose --file example/compose.yml build
+      - name: Start Apache Jena container
+        run: ${{ matrix.tool }} compose --file example/compose.yml start
       - name: Build application image
-        run: docker build --tag rdfdp:dev .
+        run: ${{ matrix.tool }} build --tag localhost/rdfgp:dev .
       - name: Create application container
-        run: |
-          docker create --network host --name rdfdp rdfdp:dev
+        run: ${{ matrix.tool }} create --name rdfgp localhost/rdfgp:dev
       - name: Start application container
-        run: docker start rdfdp
+        run: ${{ matrix.tool }} start rdfgp
       - name: Wait for application to be available
         run: curl --head --retry 20 --retry-all-errors --retry-delay 1 http://localhost:8000/
       - name: Test document conversion for HTML
@@ -77,13 +84,13 @@ jobs:
           curl --head --fail-with-body --header "accept: application/rdf+xml" http://localhost:8000/
       - name: Test document conversion for HTML with type-specific template
         run: |
-          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/webid
-      - name: Test document conversion for HTML with Markdown
-        run: |
-          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/blog/post
+          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/document
       - name: Test HTTP redirection for owl:sameAs
         run: |
           curl --head --fail-with-body http://localhost:8000/redirected
       - name: Stop application container
         if: always()
-        run: docker stop rdfdp
+        run: ${{ matrix.tool }} stop rdfgp
+      - name: Start Apache Jena container
+        if: always()
+        run: ${{ matrix.tool }} compose --file example/compose.yml stop

@@ -1,0 +1,21 @@
+services:
+  jena:
+    build:
+      # https://github.com/apache/jena/tree/main/jena-fuseki2/jena-fuseki-docker
+      context: https://github.com/apache/jena.git#main:jena-fuseki2/jena-fuseki-docker
+      args:
+        # https://hub.docker.com/_/alpine
+        ALPINE_VERSION: 3
+        # https://hub.docker.com/_/eclipse-temurin
+        JAVA_VERSION: 25
+        # start with 256MB, then go up until 2GB
+        JAVA_OPTIONS: -Xms256m -Xmx2048m
+        # https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-server/
+        JENA_VERSION: 6.0.0
+    command: --config /fuseki/config.ttl
+    container_name: jena
+    ports:
+      - 3030:3030
+    volumes:
+      - ./jena/config.ttl:/fuseki/config.ttl:rw,Z
+      - ./jena/data.ttl:/fuseki/data.ttl:rw,Z

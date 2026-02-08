@@ -1,0 +1,5 @@
+{% extends "_layout.html" %}
+{% set schema_description = graph.namespace_manager.absolutize("https://schema.org/description") %}
+{% block main %}
+<pre>{{ graph.value(graph.identifier, schema_description) }}</pre>
+{% endblock %}

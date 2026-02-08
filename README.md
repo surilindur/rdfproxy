@@ -1,69 +1,63 @@
 <p align="center">
-  <img alt="logo" src="./.github/assets/logo.svg" width="64">
+  <strong>RDF Graph Proxy</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/surilindur/rdfdp/actions/workflows/ci.yml"><img alt="CI" src=https://github.com/surilindur/rdfdp/actions/workflows/ci.yml/badge.svg?branch=main"></a>
-  <a href="https://www.python.org/"><img alt="Python" src="https://img.shields.io/badge/%3C%2F%3E-Python-%233776ab.svg"></a>
-  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/Code%20Style-black-000000.svg"></a>
-  <a href="https://opensource.org/licenses/MIT"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-%23750014.svg"></a>
+  <a href="https://github.com/surilindur/rdfgp/actions/workflows/ci.yml">
+    <img alt="CI" src=https://github.com/surilindur/rdfgp/actions/workflows/ci.yml/badge.svg?branch=main">
+  </a>
+  <a href="https://www.python.org/">
+    <img alt="Python" src="https://img.shields.io/badge/%3C%2F%3E-Python-%233776ab.svg">
+  </a>
+  <a href="https://github.com/psf/black">
+    <img alt="Code style: black" src="https://img.shields.io/badge/Code%20Style-black-000000.svg">
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-%23750014.svg">
+  </a>
 </p>
 
-Experimental simple Flask application to serve resources from local documents with content negotiation.
-Everything is declared in RDF, including static assets, to enable content negotiation over all resources.
+This is a proof-of-concept prototype implementation of an [RDF](https://www.w3.org/TR/rdf12-concepts/) resource proxy,
+that serves client-preferred serialisations from a [SPARQL endpoint](https://www.w3.org/TR/sparql12-protocol/)
+based on HTTP [content negotiation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Content_negotiation).
 
-The application performs the following during startup:
+## Resource mapping approach
 
-1. All the data from local RDF documents is loaded into an in-memory dataset.
-2. All the queries are executed as update queries on this in-memory dataset.
-3. VoID dataset descriptions are generated for each unique hostname, treating the hostname root URI as the dataset.
+The application maps resources URIs to documents followind the usual convention,
+where a fragment identifier is assumed to be part of the document URI to which the fragment is appended.
+For every resources identified as part of the requested document,
+the application collects the [Concise Bounded Description](https://www.w3.org/submissions/CBD/),
+and returns a serialisation containing all of these descriptions.
 
-Upon receiving a request, the application does the following:
-
-1. Finds the corresponding resource URI from the in-memory dataset. If no resource is found, this is reported to the client.
-2. Collects the Concise Bounded Description of every URI that would belong in the document URI, and treats this as the response data.
-3. Performs content negotiation over this resource.
-   If the document URI is declared as a `schema:MediaObject`, the application will prioritise the on-disk file mimetype over everything else.
-   Other resources will perform normal content negotiation, but prefer `text/turtle` in case of missing client preference.
-   When HTML is chosen as the format but there is no applicable template, a content negotiation error is reported.
-
-## Dependencies
-
-* Python
-* [RDFLib](https://github.com/RDFLib/rdflib)
-* [Flask](https://github.com/pallets/flask)
-* [Mistune](https://github.com/lepture/mistune)
-
-## Usage
-
-The application can be configured using environment variables:
-
-* `DATA_PATH`: The RDF data directory.
-* `QUERIES_PATH`: The queries directory.
-* `TEMPLATE_PATH`: The path to the templates directory.
+## Proxy server support
 
 The following HTTP proxy headers will be taken into consideration when identifying actual resource URIs:
 
 * `X-Forwarded-Host`: Substituted for the host value when provided.
 * `X-Forwarded-Proto`: Substituted for the protocol value when provided.
 
-Further configuration is possible for Flask via [environment variables](https://flask.palletsprojects.com/en/stable/api/#flask.Config.from_prefixed_env).
-For example, to set some options for [Flask](https://flask.palletsprojects.com/en/stable/config/):
+## Dependencies
 
-* `FLASK_USE_X_SENDFILE=true` to use `X-Sendfile` header with a proxy server.
+* [Python](https://www.python.org/)
+* [RDFLib](https://github.com/RDFLib/rdflib)
+* [Flask](https://github.com/pallets/flask)
 
-The following custom configuration options are available:
+## Configuration options
 
-* `FLASK_USE_X_ACCEL_REDIRECT`, to return static files as empty responses with the `X-Accel-Redirect` set to the on-disk file path. This requires additional server configuration, and is experimental.
+The following environment variables are used to configure the data source,
+and are passed on to RDFLib's `SPARQLStore`:
 
-## Resources
+* `SPARQL_ENDPOINT`: The endpoint URI, passed to RDFLib
+* `SPARQL_USERNAME`: The username to use (optional)
+* `SPARQL_PASSWORD`: The password to use (optional)
 
-The resources are defined in RDF, with static assets declared as `schema:MediaObject` with their on-disk file URIs.
-Only the resources defined in RDF are served by the proxy, under their defined URIs.
-The URI of the resource definitions must match the public exposed URIs of the application.
-For examples, see the definitions in the [example](./example/) directory.
+The following options exist for configuring the application itself:
 
-## Templates
+* `TEMPLATE_PATH`: The path to HTML templates, defaults to `/usr/share/rdfgpp`
+
+Additionally, the Flask application configuration is [loaded from prefixed environment variables](https://flask.palletsprojects.com/en/stable/config/#configuring-from-environment-variables).
+
+## Template mapping and context
 
 The template is selected based on the types of the document URI.
 For example, if the document URI is declared as having `rdf:type` of `schema:BlogPosting`, then `BlogPosting.html` is selected as the template.
