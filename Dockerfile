@@ -1,26 +1,20 @@
-FROM python:alpine
+FROM docker.io/python:alpine
 
-RUN apk add build-base libstdc++
+# RUN apk add --no-cache build-base
 
-ADD ./rdfdp /opt/rdfdp
-ADD ./example /usr/share/rdfdpdata
-ADD ./requirements.txt /opt/rdfdp/requirements.txt
+ADD ./rdfproxy /opt/rdfproxy
+ADD ./example/rdfproxy /usr/share/rdfproxy
+ADD ./requirements.txt /opt/rdfproxy/requirements.txt
 
-WORKDIR /opt/rdfdp
+RUN adduser --no-create-home --disabled-password --uid 1000 python
 
-RUN pip install --upgrade pip setuptools
-RUN pip install -r requirements.txt
-RUN pip install gunicorn[gevent]>=23.0.0
+WORKDIR /opt/rdfproxy
 
-RUN apk del build-base
+RUN pip install --no-cache-dir --root-user-action ignore --upgrade pip setuptools
+RUN pip install --no-cache-dir --root-user-action ignore --requirement requirements.txt
+RUN pip install --no-cache-dir --root-user-action ignore gunicorn[gevent]
 
-ENV DATA_PATH=/usr/share/rdfdpdata/data
-ENV QUERIES_PATH=/usr/share/rdfdpdata/queries
-ENV TEMPLATE_PATH=/usr/share/rdfdpdata/templates
-
-RUN adduser --no-create-home --disabled-password --uid 1000 --shell /bin/sh rdfdp
-
-USER rdfdp
+USER python
 
 EXPOSE 8000
 

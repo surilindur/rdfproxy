@@ -1,0 +1,91 @@
+RDF Proxy
+=========
+
+Simple proxy application to serve collections of RDF resources from a SPARQL
+endpoint as Web documents via HTTP content neogotiation.
+
+Resource mapping approach
+-------------------------
+
+The application maps resources URIs to documents followind the usual convention,
+where a fragment identifier is assumed to be part of the document URI to which
+the fragment is appended. For every resources identified as part of the
+requested document, the application collects the Concise BoundedDescription,
+and returns a serialisation containing all of these descriptions.
+
+The description only includes blank nodes within one hop of the document URI,
+to keep the complexity of the resulting query manageable.
+
+Proxy server support
+--------------------
+
+The following HTTP proxy headers will be taken into consideration when
+identifying actual resource URIs:
+
+* X-Forwarded-Host: Substituted for the host value when provided
+* X-Forwarded-Proto: Substituted for the protocol value when provided
+
+Dependencies
+------------
+
+* Python: https://www.python.org/
+* RDFLib: https://github.com/RDFLib/rdflib
+* Flask: https://github.com/pallets/flask
+
+Development setup
+-----------------
+
+This repository supports Visual Studio Code Dev Containers, which is the
+recommended way to open the repository and do development work. This helps
+ensure the required dependencies and extensions are all present,
+and may help isolate PyPi-sourced packages to avoid potential problems.
+
+There exists also a Podman Compose file under example/, to allow running both
+Apache Jena Fuseki as a SPARQL endpoint, and the application code itself.
+
+Configuration options
+---------------------
+
+The following environment variables are used to configure the data source,
+and are passed on to RDFLib's SPARQLStore:
+
+* SPARQL_ENDPOINT: The endpoint URI, passed to RDFLib
+* SPARQL_USERNAME: The username to use (optional)
+* SPARQL_PASSWORD: The password to use (optional)
+
+The following options exist for configuring the application itself:
+
+* TEMPLATE_PATH: The path to HTML templates, defaults to /usr/share/rdfgpp
+
+Additionally, the Flask application configuration is loaded from the default
+prefixed environment variables.
+
+Template mapping and context
+----------------------------
+
+The template is selected based on the types of the document URI.
+For example, if the document URI is declared as having rdf:type of
+schema:BlogPosting, then BlogPosting.html is selected as the template.
+
+Errors are also converted into triples, using the schema.org vocabulary.
+Errors have the type schema:Error, and thus use the Error.html template.
+
+The following variables are made available to the templates:
+
+* graph: The output as RDFLib Graph, with identifier set to document URI
+* timestamp: The current timestamp in UTC as datetime.datetime
+* type: The type string used to select the template
+
+The following filters are available to the templates:
+
+* TODO
+
+Issues
+------
+
+Please feel free to report any issues on the GitHub issue tracker.
+
+License
+-------
+
+This code is copyrighted and released under the MIT license.

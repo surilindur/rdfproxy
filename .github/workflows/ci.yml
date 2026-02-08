@@ -7,8 +7,6 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-     - cron: "0 0 * * 6"
 
 env:
   DEFAULT_PYTHON_VERSION: 3
@@ -20,26 +18,27 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
       - name: Use Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: pip
+      - name: Update pip and setuptools
+        run: python -m pip install --upgrade pip setuptools
       - name: Install project dependencies
         run: python -m pip install -r requirements.txt
       - name: Install pylint
         run: python -m pip install pylint
       - name: Run linter
-        run: python -m pylint --output-format colorized --max-line-length 88 ./rdfdp
+        run: python -m pylint --output-format colorized --max-line-length 88 ./rdfproxy
   test:
     name: Test
     needs: lint
     strategy:
-      fail-fast: false
       matrix:
         os:
           - ubuntu-24.04
@@ -47,43 +46,47 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
-      - name: Build application image
-        run: docker build --tag rdfdp:dev .
-      - name: Create application container
-        run: |
-          docker create --network host --name rdfdp rdfdp:dev
-      - name: Start application container
-        run: docker start rdfdp
+        uses: actions/checkout@v6
+      - name: Replace SPARQL endpoint URL for Docker use
+        run: sed -i -e 's/jena.dns.podman/jena/g' example/compose.yml
+      - name: Create containers
+        run: docker compose --file example/compose.yml create
+      - name: Start containers
+        run: docker compose --file example/compose.yml start
       - name: Wait for application to be available
-        run: curl --head --retry 20 --retry-all-errors --retry-delay 1 http://localhost:8000/
+        run: curl --head --retry 30 --retry-all-errors --retry-delay 1 http://localhost:8000/
       - name: Test document conversion for HTML
         run: |
-          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/
+          curl --fail-with-body --output data.html --header "accept: text/html" http://localhost:8000/
+          grep -q '<p>Example description here.</p>' data.html
       - name: Test document conversion for Turtle
         run: |
-          curl --head --fail-with-body --header "accept: text/turtle" http://localhost:8000/
+          curl --fail-with-body --output data.ttl --header "accept: text/turtle" http://localhost:8000/
+          grep -q '<http://localhost:8000/> a schema:WebSite ;' data.ttl
       - name: Test document conversion for N3
         run: |
-          curl --head --fail-with-body --header "accept: text/n3" http://localhost:8000/
+          curl --fail-with-body --output data.n3 --header "accept: text/n3" http://localhost:8000/
+          grep -q '<http://localhost:8000/> a schema:WebSite ;' data.n3
       - name: Test document conversion for N-Triples
         run: |
-          curl --head --fail-with-body --header "accept: application/n-triples" http://localhost:8000/
+          curl --fail-with-body --output data.nt --header "accept: application/n-triples" http://localhost:8000/
+          grep -q '<http://localhost:8000/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://schema.org/WebSite> .' data.nt
       - name: Test document conversion for JSON-LD
         run: |
-          curl --head --fail-with-body --header "accept: application/ld+json" http://localhost:8000/
+          curl --fail-with-body --output data.jsonld --header "accept: application/ld+json" http://localhost:8000/
+          grep -q '"@value": "Example description here."' data.jsonld
       - name: Test document conversion for RDF+XML
         run: |
-          curl --head --fail-with-body --header "accept: application/rdf+xml" http://localhost:8000/
+          curl --fail-with-body --output data.rdf --header "accept: application/rdf+xml" http://localhost:8000/
+          grep -q '<schema:WebSite rdf:about="http://localhost:8000/">' data.rdf
       - name: Test document conversion for HTML with type-specific template
         run: |
-          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/webid
-      - name: Test document conversion for HTML with Markdown
-        run: |
-          curl --head --fail-with-body --header "accept: text/html" http://localhost:8000/blog/post
+          curl --fail-with-body --output data.html --header "accept: text/html" http://localhost:8000/document
+          grep -q '<p>Example document.</p>' data.html
       - name: Test HTTP redirection for owl:sameAs
         run: |
-          curl --head --fail-with-body http://localhost:8000/redirected
-      - name: Stop application container
+          curl --head --fail-with-body --output data.txt http://localhost:8000/redirected
+          grep -q 'Location: http://localhost:8000/document' data.txt
+      - name: Stop containers
         if: always()
-        run: docker stop rdfdp
+        run: docker compose --file example/compose.yml stop

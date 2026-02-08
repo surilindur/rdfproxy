@@ -1,0 +1,13 @@
+@prefix fuseki: <http://jena.apache.org/fuseki#> .
+@prefix ja: <http://jena.hpl.hp.com/2005/11/Assembler#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<#server> rdf:type fuseki:Server ;
+    ja:context [ ja:cxtName "arq:queryTimeout" ;  ja:cxtValue "1000,10000" ] ;
+    fuseki:services ( <#example> ) .
+
+<#example> rdf:type fuseki:Service ;
+    fuseki:name "example" ;
+    fuseki:dataset [ rdf:type ja:MemoryDataset ; ja:data "/fuseki/data.ttl" ] ;
+    fuseki:endpoint [ fuseki:name "sparql" ; fuseki:operation fuseki:query ] ;
+    fuseki:endpoint [ fuseki:name "update" ; fuseki:operation fuseki:update ] .

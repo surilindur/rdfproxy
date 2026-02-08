@@ -1,0 +1,29 @@
+{
+  "name": "Alpine Linux Python 3",
+  "build": {
+    "dockerfile": "./Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "github.vscode-github-actions",
+        "ms-azuretools.vscode-containers",
+        "ms-python.black-formatter",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "rdfox.rdfox-rdf",
+        "redhat.vscode-xml"
+      ],
+      "settings": {
+        "chat.disableAIFeatures": true,
+        "editor.formatOnSave": true,
+        "editor.rulers": [
+          80
+        ],
+        "html.format.templating": true,
+        "redhat.telemetry.enabled": false,
+        "python.analysis.typeCheckingMode": "strict"
+      }
+    }
+  }
+}

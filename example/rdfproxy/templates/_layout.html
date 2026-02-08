@@ -1,0 +1,17 @@
+{% set schema_name = graph.namespace_manager.expand_curie("schema:name") %}
+<!DOCTYPE html>
+<html lang="en">
+
+<body {% if type %}class="{{ type }}" {% endif %}>
+  <header>
+    <h1>{{ graph.value(graph.identifier, schema_name) }}</h1>
+  </header>
+  <main>
+    {% block main %}{% endblock %}
+  </main>
+  <footer>
+    <p>© {{ timestamp.isoformat() }}</p>
+  </footer>
+</body>
+
+</html>
