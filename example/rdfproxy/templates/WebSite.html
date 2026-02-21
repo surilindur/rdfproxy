@@ -1,0 +1,5 @@
+{% extends "_layout.html" %}
+{% set schema_description = graph.namespace_manager.expand_curie("schema:description") %}
+{% block main %}
+<p>{{ graph.value(graph.identifier, schema_description) }}</p>
+{% endblock %}

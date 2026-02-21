@@ -1,6 +1,0 @@
-{% extends "_layout.html" %}
-{% set schema_article_body = document_graph.namespace_manager.absolutize("https://schema.org/articleBody") %}
-{% set content_markdown = document_graph.value(subject=document_uri, predicate=schema_article_body) %}
-{% block main %}
-    {{ content_markdown|markdown_to_html|safe }}
-{% endblock %}

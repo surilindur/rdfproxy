@@ -1,0 +1,37 @@
+services:
+  jena:
+    build:
+      # https://github.com/apache/jena/tree/main/jena-fuseki2/jena-fuseki-docker
+      context: https://github.com/apache/jena.git#main:jena-fuseki2/jena-fuseki-docker
+      args:
+        # https://hub.docker.com/_/alpine
+        ALPINE_VERSION: 3
+        # https://hub.docker.com/_/eclipse-temurin
+        JAVA_VERSION: 25
+        # start with 256MB, then go up until 2GB
+        JAVA_OPTIONS: -Xms256m -Xmx2048m
+        # https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-server/
+        JENA_VERSION: 6.0.0
+    command: --config /fuseki/config.ttl
+    container_name: jena
+    ports:
+      - 3030:3030
+    volumes:
+      - ./jena/config.ttl:/fuseki/config.ttl:rw,Z
+      - ./jena/data.ttl:/fuseki/data.ttl:rw,Z
+  rdfproxy:
+    build:
+      context: ..
+    container_name: rdfproxy
+    entrypoint: flask
+    command: run --debug --port 8000 --host 0.0.0.0
+    #command: --bind 0.0.0.0:8000 --workers 8 --threads 8 --worker-class gevent --worker-tmp-dir=/dev/shm
+    environment:
+      - SPARQL_ENDPOINT=http://jena.dns.podman:3030/example/sparql
+      - TEMPLATE_PATH=/usr/share/rdfproxy/templates
+      - PREFIX_PATH=/usr/share/rdfproxy/prefixes.json
+    ports:
+      - 8000:8000
+    volumes:
+      - ../rdfproxy:/opt/rdfproxy:ro,Z
+      - ./rdfproxy:/usr/share/rdfproxy:ro,Z
