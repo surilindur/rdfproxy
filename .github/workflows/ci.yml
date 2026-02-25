@@ -97,7 +97,7 @@ jobs:
         env:
           DEBUG: 1
           SPARQL_ENDPOINT: http://localhost:3030/example/sparql
-          UPDATE_ENDPOINT: http://localhost:3030/example/sparql
+          UPDATE_ENDPOINT: http://localhost:3030/example/update
           GRAPH_IDENTIFIER: http://localhost:8000/
         working-directory: ./rdfproxy
       - name: Test document inserted by data publish
