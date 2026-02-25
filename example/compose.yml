@@ -30,7 +30,7 @@ services:
       - QUERY_ENDPOINT=http://jena.dns.podman:3030/example/sparql
       - TEMPLATE_PATH=/usr/share/rdfproxy/templates
       - PREFIX_PATH=/usr/share/rdfproxy/prefixes.json
-      - GRAPH_IDENTIFIER=http://jena.dns.podman:3030/example
+      - GRAPH_IDENTIFIER=http://localhost:8000/
     ports:
       - 8000:8000
     volumes:
