@@ -82,6 +82,11 @@ def get_graph() -> Graph:
     assert GRAPH_IDENTIFIER, "Missing GRAPH_IDENTIFIER"
 
     dataset = Dataset(store=store, default_union=False)
+
+    # Ensure there are no namespace bindings, because RDFLib serialises all of
+    # them in the queries, whether they are found in the query or not...
+    dataset.namespace_manager = NamespaceManager(graph=dataset, bind_namespaces="none")
+
     graph_identifier = URIRef(GRAPH_IDENTIFIER)
 
     if UPDATE_ENDPOINT:
@@ -89,10 +94,6 @@ def get_graph() -> Graph:
     else:
         graph = dataset.get_graph(identifier=graph_identifier)
         assert graph, f"Missing graph: {graph_identifier.n3()}"
-
-    # Ensure there are no namespace bindings, because RDFLib serialises all of
-    # them in the queries, whether they are found in the query or not...
-    graph.namespace_manager = NamespaceManager(graph=graph, bind_namespaces="none")
 
     return graph
 
