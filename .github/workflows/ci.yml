@@ -96,7 +96,7 @@ jobs:
           python cli.py --erase --data ../example/data --queries ../example/queries
         env:
           DEBUG: 1
-          SPARQL_ENDPOINT: http://localhost:3030/example/sparql
+          QUERY_ENDPOINT: http://localhost:3030/example/sparql
           UPDATE_ENDPOINT: http://localhost:3030/example/update
           GRAPH_IDENTIFIER: http://localhost:8000/
         working-directory: ./rdfproxy
