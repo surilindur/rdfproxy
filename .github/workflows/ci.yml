@@ -103,7 +103,7 @@ jobs:
       - name: Test document inserted by data publish
         run: |
           curl --fail-with-body --output data.ttl --header "accept: text/turtle" http://localhost:8000/published
-          grep -q 'schema:description "Updated description for example document." ;' data.ttl
+          grep -q 'schema:description "Updated description for example document."' data.ttl
       - name: Stop containers
         if: always()
         run: docker compose --file example/compose.yml stop
