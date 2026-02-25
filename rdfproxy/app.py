@@ -1,9 +1,6 @@
 """Simple proxy application to serve RDF resources as Web documents."""
 
-from logging import DEBUG
-from logging import INFO
 from logging import exception
-from logging import basicConfig
 
 from flask import Flask
 from flask import request
@@ -37,13 +34,6 @@ app.config.setdefault("COMPRESS_MIMETYPES", MIMETYPE_PRIORITY)  # type: ignore
 
 # Load configuration from environment variables if available
 app.config.from_prefixed_env()
-
-# Configure logging
-basicConfig(
-    format="[%(asctime)s] [%(levelname)s] %(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S%z",
-    level=DEBUG if app.debug else INFO,
-)
 
 
 @app.route("/")

@@ -1,0 +1,6 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix schema: <https://schema.org/> .
+
+<http://localhost:8000/published> rdf:type schema:DigitalDocument ;
+    schema:name "Published document" ;
+    schema:description "Example published document" .

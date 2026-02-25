@@ -4,16 +4,20 @@ from os import getenv
 from json import loads
 from typing import Dict
 from typing import Sequence
+from logging import DEBUG
+from logging import INFO
+from logging import basicConfig
 from pathlib import Path
 from collections import OrderedDict
 
 from rdflib.term import URIRef
 from rdflib.namespace import SDO
 
-SPARQL_GRAPH = getenv("SPARQL_GRAPH")
+QUERY_ENDPOINT = getenv("QUERY_ENDPOINT")
+UPDATE_ENDPOINT = getenv("UPDATE_ENDPOINT")
+GRAPH_IDENTIFIER = getenv("GRAPH_IDENTIFIER")
 SPARQL_USERNAME = getenv("SPARQL_USERNAME")
 SPARQL_PASSWORD = getenv("SPARQL_PASSWORD")
-SPARQL_ENDPOINT = getenv("SPARQL_ENDPOINT")
 
 # Quad types are disabled, because Web-based querying tools may respect the
 # graph terms, and make varying assumptions about how it relates to the current
@@ -37,9 +41,12 @@ MIMETYPE_KEYWORDS: Dict[str, str] = OrderedDict(
 MIMETYPE_PRIORITY: Sequence[str] = tuple(MIMETYPE_KEYWORDS.keys())
 
 RDF_PREFIXES: Dict[str, URIRef] = {}
-TEMPLATE_PATH = Path(getenv("TEMPLATE_PATH", "/usr/share/rdfproxy/templates")).resolve(
-    strict=True
-)
+
+RDF_EXTENSIONS: tuple[str, ...] = (".ttl", ".nq", ".nt", ".rdf", ".jsonld")
+
+QUERY_EXTENSIONS: tuple[str, ...] = (".rq", ".sparql")
+
+TEMPLATE_PATH = Path(getenv("TEMPLATE_PATH", "/usr/share/rdfproxy/templates")).resolve()
 
 
 class SDONew(SDO):  # pylint: disable=too-few-public-methods
@@ -57,3 +64,10 @@ if __prefix_path:
         prefix_data: Dict[str, str] = loads(prefix_file.read())
         for key, value in prefix_data.items():
             RDF_PREFIXES[key] = URIRef(value)
+
+
+basicConfig(
+    format="[%(asctime)s] [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S%z",
+    level=DEBUG if getenv("FLASK_DEBUG") or getenv("DEBUG") else INFO,
+)

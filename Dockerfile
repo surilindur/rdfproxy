@@ -1,7 +1,5 @@
 FROM docker.io/python:alpine
 
-# RUN apk add --no-cache build-base
-
 ADD ./rdfproxy /opt/rdfproxy
 ADD ./example/rdfproxy /usr/share/rdfproxy
 ADD ./requirements.txt /opt/rdfproxy/requirements.txt
