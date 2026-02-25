@@ -7,14 +7,13 @@ endpoint as Web documents via HTTP content neogotiation.
 Resource mapping approach
 -------------------------
 
-The application maps resources URIs to documents followind the usual convention,
+The application maps resource URIs to documents following the usual convention,
 where a fragment identifier is assumed to be part of the document URI to which
-the fragment is appended. For every resources identified as part of the
-requested document, the application collects the Concise BoundedDescription,
-and returns a serialisation containing all of these descriptions.
+the fragment is appended.
 
-The description only includes blank nodes within one hop of the document URI,
-to keep the complexity of the resulting query manageable.
+The application collects all resources that match the requested document URI,
+or that are fragments on the requested document URI, and returns these.
+Blank nodes are ignored, due to RDFLib SPARQLStore not handling them anyway.
 
 Proxy server support
 --------------------
@@ -49,12 +48,16 @@ Configuration options
 The following environment variables are used to configure the data source,
 and are passed on to RDFLib's SPARQLStore:
 
-* SPARQL_ENDPOINT: The endpoint URI, passed to RDFLib
+* QUERY_ENDPOINT: The query endpoint URI, passed to RDFLib
+* UPDATE_ENDPOINT: The update endpoint URI, passed to RDFLib
 * SPARQL_USERNAME: The username to use (optional)
 * SPARQL_PASSWORD: The password to use (optional)
 
-The following options exist for configuring the application itself:
+The following additional environment variables exist:
 
+* USER_AGENT: The full HTTP User-Agent header value to use, if provided
+* GRAPH_IDENTIFIER: Optional identifier for using a specific graph only
+* PREFIX_PATH: The path to a JSON document with prefixes to use
 * TEMPLATE_PATH: The path to HTML templates, defaults to /usr/share/rdfgpp
 
 Additionally, the Flask application configuration is loaded from the default
@@ -75,10 +78,6 @@ The following variables are made available to the templates:
 * graph: The output as RDFLib Graph, with identifier set to document URI
 * timestamp: The current timestamp in UTC as datetime.datetime
 * type: The type string used to select the template
-
-The following filters are available to the templates:
-
-* TODO
 
 Issues
 ------

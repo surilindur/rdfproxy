@@ -17,8 +17,8 @@ services:
     ports:
       - 3030:3030
     volumes:
-      - ./jena/config.ttl:/fuseki/config.ttl:rw,Z
-      - ./jena/data.ttl:/fuseki/data.ttl:rw,Z
+      - ./jena/config.ttl:/fuseki/config.ttl:ro,Z
+      - ./jena/data.trig:/fuseki/data.trig:ro,Z
   rdfproxy:
     build:
       context: ..
@@ -27,11 +27,14 @@ services:
     command: run --debug --port 8000 --host 0.0.0.0
     #command: --bind 0.0.0.0:8000 --workers 8 --threads 8 --worker-class gevent --worker-tmp-dir=/dev/shm
     environment:
-      - SPARQL_ENDPOINT=http://jena.dns.podman:3030/example/sparql
+      - QUERY_ENDPOINT=http://jena.dns.podman:3030/example/sparql
       - TEMPLATE_PATH=/usr/share/rdfproxy/templates
       - PREFIX_PATH=/usr/share/rdfproxy/prefixes.json
+      - GRAPH_IDENTIFIER=http://localhost:8000/
     ports:
       - 8000:8000
     volumes:
       - ../rdfproxy:/opt/rdfproxy:ro,Z
       - ./rdfproxy:/usr/share/rdfproxy:ro,Z
+      - ./data:/tmp/data:ro,Z
+      - ./queries:/tmp/queries:ro,Z

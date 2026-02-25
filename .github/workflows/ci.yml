@@ -47,7 +47,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Replace SPARQL endpoint URL for Docker use
+      - name: Update pip and setuptools
+        run: python -m pip install --upgrade pip setuptools
+      - name: Install project dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Replace Podman SPARQL endpoint URL with Docker equivalent
         run: sed -i -e 's/jena.dns.podman/jena/g' example/compose.yml
       - name: Create containers
         run: docker compose --file example/compose.yml create
@@ -87,6 +91,19 @@ jobs:
         run: |
           curl --head --fail-with-body --output data.txt http://localhost:8000/redirected
           grep -q 'Location: http://localhost:8000/document' data.txt
+      - name: Test data publishing script
+        run: |
+          python cli.py --erase --data ../example/data --queries ../example/queries
+        env:
+          DEBUG: 1
+          QUERY_ENDPOINT: http://localhost:3030/example/sparql
+          UPDATE_ENDPOINT: http://localhost:3030/example/update
+          GRAPH_IDENTIFIER: http://localhost:8000/
+        working-directory: ./rdfproxy
+      - name: Test document inserted by data publish
+        run: |
+          curl --fail-with-body --output data.ttl --header "accept: text/turtle" http://localhost:8000/published
+          grep -q 'schema:description "Updated description for example document." ;' data.ttl
       - name: Stop containers
         if: always()
         run: docker compose --file example/compose.yml stop

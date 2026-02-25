@@ -1,0 +1,11 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX schema: <https://schema.org/>
+
+DELETE {
+  ?s schema:description ?description .
+} INSERT {
+  ?s schema:description "Updated description for example document."
+} WHERE {
+  ?s schema:description ?description .
+  VALUES ?s { <http://localhost:8000/published> }
+}

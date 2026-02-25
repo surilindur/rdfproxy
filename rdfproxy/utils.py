@@ -4,11 +4,13 @@ from http import HTTPStatus
 from typing import Any
 from typing import Tuple
 from typing import Set
+from typing import List
 from typing import Iterable
 from typing import Callable
 from typing import Mapping
 from hashlib import sha256
 from logging import debug
+from pathlib import Path
 from datetime import UTC
 from datetime import datetime
 from functools import cache
@@ -34,12 +36,24 @@ from config import TEMPLATE_PATH
 
 
 @cache
-def get_available_templates() -> Mapping[str, str]:
+def get_available_templates(host: str) -> Mapping[str, str]:
     """Helper function to collect available templates."""
 
     templates: Mapping[str, str] = {}
 
-    for fp in TEMPLATE_PATH.iterdir():
+    host_template_path = TEMPLATE_PATH.joinpath(host).resolve()
+
+    assert (
+        host_template_path.parent == TEMPLATE_PATH
+    ), f"Malformed host template path {host_template_path}"
+
+    current_template_path = (
+        host_template_path
+        if host_template_path.exists() and host_template_path.is_dir()
+        else TEMPLATE_PATH
+    )
+
+    for fp in current_template_path.iterdir():
         if fp.name.endswith(".html"):
             templates[fp.name.removesuffix(".html")] = fp.name
 
@@ -50,7 +64,7 @@ def find_matching_template(graph: Graph) -> Tuple[str | None, str | None]:
     """Helper function to find a matching template."""
 
     type_names: Set[str] = set()
-    templates = get_available_templates()
+    templates = get_available_templates(request.host)
 
     for type_term in graph.objects(subject=graph.identifier, predicate=RDF.type):
         if isinstance(type_term, URIRef):
@@ -139,7 +153,11 @@ def get_request_uri() -> URIRef:
     final_proto = proxy_request_proto or flask_request_uri.scheme
     final_host = proxy_request_host or flask_request_uri.hostname
 
-    if flask_request_uri.port:
+    if (
+        flask_request_uri.port
+        and final_host
+        and not final_host.endswith(f":{flask_request_uri.port}")
+    ):
         final_host = f"{final_host}:{flask_request_uri.port}"
 
     assert final_host, "Request data is missing hostname"
@@ -175,3 +193,16 @@ def sort_by_object(
         so[1]
         for so in sorted(subject_objects, key=lambda so: so[1].n3(), reverse=reverse)
     )
+
+
+def iterate_by_extension(path: Path, extensions: tuple[str, ...]) -> Iterable[Path]:
+    """Helper function to recursively iterate over files with extensions."""
+
+    queue: List[Path] = [path]
+
+    while queue:
+        path = queue.pop(0)
+        if path.is_file() and path.name.endswith(extensions):
+            yield path
+        elif path.is_dir():
+            queue.extend(path.iterdir())
