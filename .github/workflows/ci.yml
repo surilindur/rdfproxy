@@ -93,7 +93,7 @@ jobs:
           grep -q 'Location: http://localhost:8000/document' data.txt
       - name: Test data publishing script
         run: |
-          python cli.py --data --erase ../example/data --queries ../example/queries
+          python cli.py --erase --data ../example/data --queries ../example/queries
         env:
           DEBUG: 1
           SPARQL_ENDPOINT: http://localhost:3030/example/sparql
