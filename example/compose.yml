@@ -18,7 +18,7 @@ services:
       - 3030:3030
     volumes:
       - ./jena/config.ttl:/fuseki/config.ttl:ro,Z
-      - ./jena/data.ttl:/fuseki/data.ttl:ro,Z
+      - ./jena/data.trig:/fuseki/data.trig:ro,Z
   rdfproxy:
     build:
       context: ..
