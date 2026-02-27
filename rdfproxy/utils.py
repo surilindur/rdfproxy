@@ -48,9 +48,9 @@ def get_available_templates(host: str) -> Mapping[str, Path]:
         debug(f"Host templates not found at {host_template_path}")
         host_template_path = TEMPLATE_PATH
 
-    assert (
-        host_template_path == TEMPLATE_PATH
-        or host_template_path.parent == TEMPLATE_PATH
+    assert TEMPLATE_PATH in (
+        host_template_path,
+        host_template_path.parent,
     ), f"Malformed host template path {host_template_path}"
 
     debug(f"Using templates for host {host} from {host_template_path}")
