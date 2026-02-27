@@ -49,14 +49,14 @@ The following environment variables are used to configure the data source,
 and are passed on to RDFLib's SPARQLStore:
 
 * QUERY_ENDPOINT: The query endpoint URI, passed to RDFLib
-* UPDATE_ENDPOINT: The update endpoint URI, passed to RDFLib
+* UPDATE_ENDPOINT: The update endpoint URI, passed to RDFLib (optional)
+* GRAPH_IDENTIFIER: Optional identifier for using a specific graph only
 * SPARQL_USERNAME: The username to use (optional)
 * SPARQL_PASSWORD: The password to use (optional)
 
 The following additional environment variables exist:
 
 * USER_AGENT: The full HTTP User-Agent header value to use, if provided
-* GRAPH_IDENTIFIER: Optional identifier for using a specific graph only
 * PREFIX_PATH: The path to a JSON document with prefixes to use
 * TEMPLATE_PATH: The path to HTML templates, defaults to /usr/share/rdfgpp
 
@@ -69,6 +69,11 @@ Template mapping and context
 The template is selected based on the types of the document URI.
 For example, if the document URI is declared as having rdf:type of
 schema:BlogPosting, then BlogPosting.html is selected as the template.
+
+Host-specific templates are loaded from a directory under the main template
+path, when such a directory exists. The directory name should be the inverse
+of the host, without port number. For example, a host "127.0.0.1:8000" would
+use templates from a directory named "1.0.0.127".
 
 Errors are also converted into triples, using the schema.org vocabulary.
 Errors have the type schema:Error, and thus use the Error.html template.

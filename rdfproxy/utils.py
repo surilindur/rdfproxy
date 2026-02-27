@@ -36,31 +36,33 @@ from config import TEMPLATE_PATH
 
 
 @cache
-def get_available_templates(host: str) -> Mapping[str, str]:
+def get_available_templates(host: str) -> Mapping[str, Path]:
     """Helper function to collect available templates."""
 
-    templates: Mapping[str, str] = {}
+    templates: Mapping[str, Path] = {}
 
-    host_template_path = TEMPLATE_PATH.joinpath(host).resolve()
+    host_directory = ".".join(host.split(":")[0].split(".")[::-1])
+    host_template_path = TEMPLATE_PATH.joinpath(host_directory).resolve()
+
+    if not host_template_path.exists() or not host_template_path.is_dir():
+        debug(f"Host templates not found at {host_template_path}")
+        host_template_path = TEMPLATE_PATH
 
     assert (
-        host_template_path.parent == TEMPLATE_PATH
+        host_template_path == TEMPLATE_PATH
+        or host_template_path.parent == TEMPLATE_PATH
     ), f"Malformed host template path {host_template_path}"
 
-    current_template_path = (
-        host_template_path
-        if host_template_path.exists() and host_template_path.is_dir()
-        else TEMPLATE_PATH
-    )
+    debug(f"Using templates for host {host} from {host_template_path}")
 
-    for fp in current_template_path.iterdir():
+    for fp in host_template_path.iterdir():
         if fp.name.endswith(".html"):
-            templates[fp.name.removesuffix(".html")] = fp.name
+            templates[fp.name.removesuffix(".html")] = fp
 
     return templates
 
 
-def find_matching_template(graph: Graph) -> Tuple[str | None, str | None]:
+def find_matching_template(graph: Graph) -> Tuple[str | None, Path | None]:
     """Helper function to find a matching template."""
 
     type_names: Set[str] = set()
@@ -114,8 +116,10 @@ def content_negotiation(func: Callable[..., Graph]) -> Callable[..., Response]:
             matching_type, output_template = find_matching_template(graph=output_graph)
             if not matching_type or not output_template:
                 return Response(status=HTTPStatus.NOT_EXTENDED)
+            template_name = str(output_template.relative_to(TEMPLATE_PATH))
+            debug(f"Serialising {output_graph.identifier.n3()} using {template_name}")
             output_string = render_template(
-                template_name_or_list=output_template,
+                template_name_or_list=template_name,
                 graph=output_graph,
                 type=matching_type,
                 timestamp=datetime.now(tz=UTC),
