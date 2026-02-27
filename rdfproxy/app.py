@@ -18,6 +18,7 @@ from store import get_document
 from utils import content_negotiation
 from utils import get_request_uri
 from utils import sort_by_object
+from utils import markdown_to_html
 from config import SDONew
 from config import MIMETYPE_PRIORITY
 from config import TEMPLATE_PATH
@@ -28,6 +29,7 @@ app.jinja_env.trim_blocks = True
 
 # Custom filters for templates
 app.jinja_env.filters["sort_by_object"] = sort_by_object  # type: ignore
+app.jinja_env.filters["markdown_to_html"] = markdown_to_html  # type: ignore
 
 # Ensure custom mimetypes are compressed
 app.config.setdefault("COMPRESS_MIMETYPES", MIMETYPE_PRIORITY)  # type: ignore
