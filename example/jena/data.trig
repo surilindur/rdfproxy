@@ -17,4 +17,8 @@
 
     <http://localhost:8000/redirected> owl:sameAs <http://localhost:8000/document> .
 
+    <http://127.0.0.1:8000/test> rdf:type schema:DigitalDocument ;
+        schema:name "Loopback document" ;
+        schema:description "Example loopback document." .
+
 }
