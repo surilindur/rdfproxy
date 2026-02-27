@@ -1,6 +1,7 @@
 """Miscellaneous utility functionality."""
 
 from http import HTTPStatus
+from json import dumps
 from typing import Any
 from typing import Tuple
 from typing import Set
@@ -21,6 +22,18 @@ from flask import request
 from flask import Response
 from flask import render_template
 
+from mistune.markdown import Markdown
+from mistune.plugins.abbr import abbr
+from mistune.plugins.def_list import def_list
+from mistune.plugins.footnotes import footnotes
+from mistune.plugins.formatting import mark
+from mistune.plugins.formatting import strikethrough
+from mistune.plugins.formatting import subscript
+from mistune.plugins.formatting import superscript
+from mistune.plugins.math import math
+from mistune.plugins.table import table
+from mistune.renderers.html import HTMLRenderer
+
 from rdflib.term import URIRef
 from rdflib.term import Literal
 from rdflib.graph import _SubjectType
@@ -33,6 +46,22 @@ from config import SDONew
 from config import MIMETYPE_KEYWORDS
 from config import MIMETYPE_PRIORITY
 from config import TEMPLATE_PATH
+
+mistune_renderer = HTMLRenderer()
+mistune_markdown = Markdown(
+    renderer=mistune_renderer,
+    plugins=[
+        abbr,
+        def_list,
+        footnotes,
+        mark,
+        math,
+        strikethrough,
+        subscript,
+        superscript,
+        table,
+    ],
+)
 
 
 @cache
@@ -187,15 +216,32 @@ def partition_to_fragment(dataset_uri: URIRef, partition_uri: URIRef) -> URIRef:
     return partition_fragment
 
 
+def markdown_to_html(content: str) -> str:
+    """Jinja filter to convert markdown into HTML."""
+
+    html_output = mistune_markdown(content)
+
+    if isinstance(html_output, str):
+        return html_output
+
+    html_json = dumps(html_output, ensure_ascii=False, indent=2, sort_keys=True)
+
+    return f"<pre>{html_json}</pre>"
+
+
 def sort_by_object(
     subject_objects: Iterable[Tuple[_SubjectType, _ObjectType]],
     reverse: bool = False,
-) -> Iterable[_ObjectType]:
+) -> Iterable[_SubjectType]:
     """Jinja filter for sorting subjects based on object value."""
 
     return (
-        so[1]
-        for so in sorted(subject_objects, key=lambda so: so[1].n3(), reverse=reverse)
+        so[0]
+        for so in sorted(
+            subject_objects,
+            key=lambda so: so[1].n3(),
+            reverse=reverse,
+        )
     )
 
 

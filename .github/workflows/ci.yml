@@ -87,6 +87,10 @@ jobs:
         run: |
           curl --fail-with-body --output data.html --header "accept: text/html" http://localhost:8000/document
           grep -q '<p>Example document.</p>' data.html
+      - name: Test document conversion for HTML with Markdown filter
+        run: |
+          curl --fail-with-body --output data.html --header "accept: text/html" http://localhost:8000/markdown
+          grep -q '<del>This is struck through.</del>' data.html
       - name: Test document conversion for HTML with host-specific template
         run: |
           curl --fail-with-body --output data.html --header "accept: text/html" http://127.0.0.1:8000/test

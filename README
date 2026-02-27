@@ -30,6 +30,7 @@ Dependencies
 * Python: https://www.python.org/
 * RDFLib: https://github.com/RDFLib/rdflib
 * Flask: https://github.com/pallets/flask
+* Mistune: https://github.com/lepture/mistune
 
 Development setup
 -----------------
@@ -83,6 +84,17 @@ The following variables are made available to the templates:
 * graph: The output as RDFLib Graph, with identifier set to document URI
 * timestamp: The current timestamp in UTC as datetime.datetime
 * type: The type string used to select the template
+
+The following custom filters are available in Jinja templates:
+
+* sort_by_object: Sorts the input subject + object pairs by object value,
+  and returns the sorted object values, with optional reverse order:
+
+    sort_by_object(graph.subject_objects(predicate=p, distinct=True), reverse=False)
+
+* markdown_to_html: Converts the input Markdown to HTML output using Mistune:
+
+    graph.value(subject=s, predicate=p)|markdown_to_html|safe
 
 Issues
 ------

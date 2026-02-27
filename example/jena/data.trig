@@ -15,6 +15,18 @@
         schema:name "Document" ;
         schema:description "Example document." .
 
+    <http://localhost:8000/markdown> rdf:type schema:Statement ;
+        schema:name "Document" ;
+        schema:text """# Example markdown
+
+This should be a list:
+
+* First
+* Second
+* Third
+
+~~This is struck through.~~""" .
+
     <http://localhost:8000/redirected> owl:sameAs <http://localhost:8000/document> .
 
     <http://127.0.0.1:8000/test> rdf:type schema:DigitalDocument ;
