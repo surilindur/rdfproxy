@@ -180,18 +180,12 @@ def get_request_uri() -> URIRef:
     """Helper function to resolve the exact request URI."""
 
     flask_request_uri = urlparse(request.url)
+
     proxy_request_host = request.headers.get("X-Forwarded-Host")
     proxy_request_proto = request.headers.get("X-Forwarded-Proto")
 
+    final_host = proxy_request_host or flask_request_uri.netloc
     final_proto = proxy_request_proto or flask_request_uri.scheme
-    final_host = proxy_request_host or flask_request_uri.hostname
-
-    if (
-        flask_request_uri.port
-        and final_host
-        and not final_host.endswith(f":{flask_request_uri.port}")
-    ):
-        final_host = f"{final_host}:{flask_request_uri.port}"
 
     assert final_host, "Request data is missing hostname"
     assert ".." not in flask_request_uri.path, "Invalid request path"
