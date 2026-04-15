@@ -9,3 +9,8 @@ dependencies = [
     "mistune>=3.2.0",
     "rdflib>=7.6.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.5",
+]

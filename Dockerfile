@@ -1,19 +1,21 @@
 FROM docker.io/python:alpine
 
+RUN apk add --no-cache uv
+
 ADD ./rdfproxy /opt/rdfproxy
 ADD ./example/rdfproxy /usr/share/rdfproxy
-ADD ./requirements.txt /opt/rdfproxy/requirements.txt
+ADD ./pyproject.toml /opt/rdfproxy/pyproject.toml
+ADD ./uv.lock /opt/rdfproxy/uv.lock
 
 RUN adduser --no-create-home --disabled-password --uid 1000 python
 
 WORKDIR /opt/rdfproxy
 
-RUN pip install --no-cache-dir --root-user-action ignore --upgrade pip setuptools
-RUN pip install --no-cache-dir --root-user-action ignore --requirement requirements.txt
-RUN pip install --no-cache-dir --root-user-action ignore gunicorn[gevent]
+RUN uv sync --no-dev
+RUN uv pip install gunicorn[gevent]
 
 USER python
 
 EXPOSE 8000
 
-ENTRYPOINT [ "gunicorn", "app:app" ]
+ENTRYPOINT [ "uv", "run", "gunicorn", "app:app" ]
