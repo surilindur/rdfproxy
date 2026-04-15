@@ -28,6 +28,8 @@ jobs:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Install project dependencies
+        run: uv pip install
       - name: Run linter
         run: uv tool run pylint --output-format colorized --max-line-length 88 ./rdfproxy
   test:
