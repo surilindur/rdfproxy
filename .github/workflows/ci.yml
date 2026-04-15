@@ -29,7 +29,7 @@ jobs:
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Install project dependencies
-        run: uv pip install
+        run: uv sync
       - name: Run linter
         run: uv tool run pylint --output-format colorized --max-line-length 88 ./rdfproxy
   test:
@@ -51,7 +51,7 @@ jobs:
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Install project dependencies
-        run: uv pip install
+        run: uv sync
       - name: Replace Podman SPARQL endpoint URL with Docker equivalent
         run: sed -i -e 's/jena.dns.podman/jena/g' example/compose.yml
       - name: Create containers
