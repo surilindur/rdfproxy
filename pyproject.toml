@@ -2,7 +2,7 @@
 name = "rdfproxy"
 version = "0.1.0"
 description = "Simple proxy application to serve resources from a SPARQL endpoint as Web documents with content negotiation"
-readme = "README.rst"
+readme = "README"
 requires-python = ">=3.12"
 dependencies = [
     "flask>=3.1.3",
