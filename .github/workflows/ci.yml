@@ -26,15 +26,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
-          cache: pip
-      - name: Update pip and setuptools
-        run: python -m pip install --upgrade pip setuptools
-      - name: Install project dependencies
-        run: python -m pip install -r requirements.txt
-      - name: Install pylint
-        run: python -m pip install pylint
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Run linter
-        run: python -m pylint --output-format colorized --max-line-length 88 ./rdfproxy
+        run: uv tool run pylint --output-format colorized --max-line-length 88 ./rdfproxy
   test:
     name: Test
     needs: lint
@@ -47,10 +42,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Update pip and setuptools
-        run: python -m pip install --upgrade pip setuptools
+      - name: Use Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
       - name: Install project dependencies
-        run: python -m pip install -r requirements.txt
+        run: uv pip install
       - name: Replace Podman SPARQL endpoint URL with Docker equivalent
         run: sed -i -e 's/jena.dns.podman/jena/g' example/compose.yml
       - name: Create containers
