@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/devcontainers/base:alpine
 
-RUN apk add --no-cache python3 py3-pip gcompat
+RUN apk add --no-cache python3 uv gcompat
 
 ENTRYPOINT [ "/bin/bash" ]
