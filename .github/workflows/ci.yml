@@ -90,8 +90,17 @@ jobs:
           grep -q 'Location: http://localhost:8000/document' data.txt
       - name: Test data publishing script
         run: |
-          source /opt/venv/bin/activate
-          python cli.py --erase --data ../example/data --queries ../example/queries
+          docker run \
+            --rm \
+            --interactive \
+            --tty \
+            --entrypoint '[ "/opt/venv/bin/python", "cli.py" ]' \
+            --volume ./example/data:/tmp/data:ro \
+            --volume ./example/queries:/tmp/queries:ro \
+            example-rdfproxy:latest \
+            --erase \
+            --data /tmp/data \
+            --queries /tmp/queries
         env:
           DEBUG: 1
           QUERY_ENDPOINT: http://localhost:3030/example/sparql
