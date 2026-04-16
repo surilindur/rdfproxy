@@ -90,6 +90,7 @@ jobs:
           grep -q 'Location: http://localhost:8000/document' data.txt
       - name: Test data publishing script
         run: |
+          source /opt/venv/bin/activate
           python cli.py --erase --data ../example/data --queries ../example/queries
         env:
           DEBUG: 1
