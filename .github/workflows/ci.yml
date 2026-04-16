@@ -30,7 +30,13 @@ jobs:
   test:
     name: Test
     needs: lint
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -92,19 +98,17 @@ jobs:
         run: |
           docker run \
             --rm \
-            --entrypoint '[ "/opt/venv/bin/python", "cli.py" ]' \
+            --entrypoint /opt/venv/bin/python \
             --volume ./example/data:/tmp/data:ro \
             --volume ./example/queries:/tmp/queries:ro \
-            example-rdfproxy:latest \
+            --env DEBUG=1 \
+            --env QUERY_ENDPOINT=http://localhost:3030/example/sparql \
+            --env UPDATE_ENDPOINT=http://localhost:3030/example/update \
+            --env GRAPH_IDENTIFIER=http://localhost:8000/ \
+            example-rdfproxy:latest cli.py \
             --erase \
             --data /tmp/data \
             --queries /tmp/queries
-        env:
-          DEBUG: 1
-          QUERY_ENDPOINT: http://localhost:3030/example/sparql
-          UPDATE_ENDPOINT: http://localhost:3030/example/update
-          GRAPH_IDENTIFIER: http://localhost:8000/
-        working-directory: ./rdfproxy
       - name: Test document inserted by data publish
         run: |
           curl --fail-with-body --output data.ttl --header "accept: text/turtle" http://localhost:8000/published
