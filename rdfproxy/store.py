@@ -14,7 +14,6 @@ from flask import abort
 
 from rdflib import __version__
 from rdflib.term import URIRef
-from rdflib.term import Literal
 from rdflib.term import Variable
 from rdflib.graph import Graph
 from rdflib.graph import Dataset
@@ -33,15 +32,15 @@ VARIABLE_PREDICATE = Variable("p")
 VARIABLE_OBJECT = Variable("o")
 DOCUMENT_VARIABLE = Variable("document")
 
-# Collects the Concise Bounded Description for ?document_uri, but with blank
-# nodes excluded, due to the RDFLib SPARQLStore rejecting them anyway.
-# This, however, enables efficient CBD collection with a single query.
-CONCISE_BOUNDED_DESCRIPTION_QUERY = sub(
+# Collects all document members based on their IRI, except for blank nodes.
+# This allows collecting all members with a single query.
+CONSTRUCT_DOCUMENT_MEMBERS = sub(
     r"\s+",
     " ",
     """
-    SELECT DISTINCT ?s ?p ?o WHERE
-    {
+    CONSTRUCT {
+        ?s ?p ?o .
+    } WHERE {
         ?s ?p ?o .
 
         FILTER(
@@ -126,28 +125,23 @@ def get_document(uri: str) -> Graph:
     # initBindings. RDFLib, however, places the VALUES clause outside the
     # WHERE clause, which breaks it.
     result = store_graph.query(
-        query_object=CONCISE_BOUNDED_DESCRIPTION_QUERY.replace(
+        query_object=CONSTRUCT_DOCUMENT_MEMBERS.replace(
             "?document_uri",
             document_uri.n3(),
         )
     )
 
-    # Add custom prefixes so they show up in the serialisation
-    for prefix, value in RDF_PREFIXES.items():
-        document_graph.namespace_manager.bind(prefix=prefix, namespace=value)
-
-    for bindings in result.bindings:
-        value_s = bindings.get(VARIABLE_SUBJECT)
-        value_p = bindings.get(VARIABLE_PREDICATE)
-        value_o = bindings.get(VARIABLE_OBJECT)
-        assert isinstance(value_s, URIRef), f"Bad subject: {value_s}"
-        assert isinstance(value_p, URIRef), f"Bad predicate: {value_p}"
-        assert isinstance(value_o, (Literal, URIRef)), f"Bad object: {value_o}"
-        document_graph.add((value_s, value_p, value_o))
-
-    debug(f"Retrieved {len(document_graph)} quads for {document_graph.identifier.n3()}")
+    if result.graph:
+        document_graph += result.graph
+        debug(
+            f"Retrieved {len(document_graph)} quads for {document_graph.identifier.n3()}"
+        )
 
     if not document_graph:
         abort(HTTPStatus.NOT_FOUND.value)
+
+    # Add custom prefixes so they show up in the serialisation
+    for prefix, value in RDF_PREFIXES.items():
+        document_graph.namespace_manager.bind(prefix=prefix, namespace=value)
 
     return document_graph
