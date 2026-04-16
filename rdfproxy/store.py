@@ -118,8 +118,7 @@ def get_document(uri: str) -> Graph:
     """Get the document graph for the specified URI."""
 
     store_graph = get_graph()
-    document_uri = URIRef(uri.split("#")[0])
-    document_graph = Graph(identifier=document_uri, bind_namespaces="none")
+    document_graph = Graph(identifier=uri, bind_namespaces="none")
 
     # This would ideally NOT be done with string replacement, but through
     # initBindings. RDFLib, however, places the VALUES clause outside the
@@ -127,7 +126,7 @@ def get_document(uri: str) -> Graph:
     result = store_graph.query(
         query_object=CONSTRUCT_DOCUMENT_MEMBERS.replace(
             "?document_uri",
-            document_uri.n3(),
+            document_graph.identifier.n3(),
         )
     )
 
