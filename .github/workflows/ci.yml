@@ -101,6 +101,7 @@ jobs:
             --entrypoint /opt/venv/bin/python \
             --volume ./example/data:/tmp/data:ro \
             --volume ./example/queries:/tmp/queries:ro \
+            --network host \
             --env DEBUG=1 \
             --env QUERY_ENDPOINT=http://localhost:3030/example/sparql \
             --env UPDATE_ENDPOINT=http://localhost:3030/example/update \
