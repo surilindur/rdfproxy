@@ -1,4 +1,4 @@
-FROM docker.io/python:alpine
+FROM docker.io/python:3.14-alpine
 
 RUN apk add --no-cache uv
 

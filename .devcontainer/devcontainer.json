@@ -3,6 +3,7 @@
   "build": {
     "dockerfile": "./Dockerfile"
   },
+  "postStartCommand": "uv python install && uv sync",
   "customizations": {
     "vscode": {
       "extensions": [
