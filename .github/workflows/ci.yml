@@ -24,7 +24,7 @@ jobs:
       - name: Install Python
         run: uv python install
       - name: Install project dependencies
-        run: uv sync
+        run: uv sync --locked
       - name: Run linter
         run: uv run pylint --output-format colorized --max-line-length 88 ./rdfproxy
   test:
@@ -39,7 +39,7 @@ jobs:
       - name: Install Python
         run: uv python install
       - name: Install project dependencies
-        run: uv sync --no-dev
+        run: uv sync --no-dev --locked
       - name: Replace Podman SPARQL endpoint URL with Docker equivalent
         run: sed -i -e 's/jena.dns.podman/jena/g' example/compose.yml
       - name: Create containers
