@@ -114,7 +114,7 @@ def get_user_agent_header() -> str:
     return value
 
 
-def get_document(uri: str) -> Graph:
+def get_document(uri: URIRef) -> Graph:
     """Get the document graph for the specified URI."""
 
     store_graph = get_graph()
@@ -124,17 +124,12 @@ def get_document(uri: str) -> Graph:
     # initBindings. RDFLib, however, places the VALUES clause outside the
     # WHERE clause, which breaks it.
     result = store_graph.query(
-        query_object=CONSTRUCT_DOCUMENT_MEMBERS.replace(
-            "?document_uri",
-            document_graph.identifier.n3(),
-        )
+        query_object=CONSTRUCT_DOCUMENT_MEMBERS.replace("?document_uri", uri.n3())
     )
 
     if result.graph:
         document_graph += result.graph
-        debug(
-            f"Retrieved {len(document_graph)} quads for {document_graph.identifier.n3()}"
-        )
+        debug(f"Retrieved {len(document_graph)} quads for {uri.n3()}")
 
     if not document_graph:
         abort(HTTPStatus.NOT_FOUND.value)
