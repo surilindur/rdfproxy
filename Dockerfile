@@ -1,21 +1,36 @@
-FROM docker.io/alpine:latest
+FROM docker.io/python:3.14-alpine AS base
 
-RUN apk add --no-cache uv
+FROM base AS build
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+ENV VIRTUAL_ENV=/opt/venv
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
 
 ADD ./rdfproxy /opt/rdfproxy
-ADD ./example/rdfproxy /usr/share/rdfproxy
-ADD ./.python-version /opt/rdfproxy/.python-version
 ADD ./pyproject.toml /opt/rdfproxy/pyproject.toml
 ADD ./uv.lock /opt/rdfproxy/uv.lock
 
-RUN adduser --no-create-home --disabled-password --uid 1000 python
+WORKDIR /opt/rdfproxy
+
+RUN uv venv /opt/venv
+RUN uv sync --active --no-dev --all-extras --locked
+
+FROM base
+
+COPY --from=build /opt/venv /opt/venv
+COPY --from=build /opt/rdfproxy /opt/rdfproxy
+ADD ./example/rdfproxy /usr/share/rdfproxy
 
 WORKDIR /opt/rdfproxy
 
-RUN uv python install && uv sync --no-dev && uv pip install gunicorn[gevent]
+RUN adduser --no-create-home --disabled-password --uid 1000 python
 
 USER python
 
+ENV PATH="/opt/venv/bin:$PATH"
+
 EXPOSE 8000
 
-ENTRYPOINT [ "uv", "run", "gunicorn", "app:app" ]
+ENTRYPOINT [ "gunicorn", "app:app" ]

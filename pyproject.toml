@@ -10,6 +10,11 @@ dependencies = [
     "rdflib>=7.6.0",
 ]
 
+[project.optional-dependencies]
+gunicorn = [
+    "gunicorn>=25.3.0",
+]
+
 [dependency-groups]
 dev = [
     "pylint>=4.0.5",
