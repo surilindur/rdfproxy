@@ -7,7 +7,7 @@ services:
         # https://hub.docker.com/_/alpine
         ALPINE_VERSION: 3
         # https://hub.docker.com/_/eclipse-temurin
-        JAVA_VERSION: 25
+        JAVA_VERSION: 26
         # start with 256MB, then go up until 2GB
         JAVA_OPTIONS: -Xms256m -Xmx2048m
         # https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-server/
@@ -23,9 +23,8 @@ services:
     build:
       context: ..
     container_name: rdfproxy
-    entrypoint: flask
-    command: run --debug --port 8000 --host 0.0.0.0
-    #command: --bind 0.0.0.0:8000 --workers 8 --threads 8 --worker-class gevent --worker-tmp-dir=/dev/shm
+    entrypoint: flask run --debug --port 8000 --host 0.0.0.0
+    #entrypoint: gunicorn --bind 0.0.0.0:8000 --workers 8 --threads 8 --worker-class gevent --worker-tmp-dir=/dev/shm app:app
     environment:
       - QUERY_ENDPOINT=http://jena.dns.podman:3030/example/sparql
       - TEMPLATE_PATH=/usr/share/rdfproxy/templates

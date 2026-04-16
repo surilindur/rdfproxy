@@ -3,6 +3,7 @@
   "build": {
     "dockerfile": "./Dockerfile"
   },
+  "postStartCommand": "uv python install && uv sync",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -12,16 +13,13 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "rdfox.rdfox-rdf",
-        "redhat.vscode-xml"
+        "samuelcolvin.jinjahtml"
       ],
       "settings": {
-        "chat.disableAIFeatures": true,
         "editor.formatOnSave": true,
         "editor.rulers": [
           80
         ],
-        "html.format.templating": true,
-        "redhat.telemetry.enabled": false,
         "python.analysis.typeCheckingMode": "strict"
       }
     }

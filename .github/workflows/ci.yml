@@ -8,9 +8,6 @@ on:
     branches:
       - main
 
-env:
-  DEFAULT_PYTHON_VERSION: 3
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -18,27 +15,23 @@ concurrency:
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Use Python ${{ env.DEFAULT_PYTHON_VERSION }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
-          cache: pip
-      - name: Update pip and setuptools
-        run: python -m pip install --upgrade pip setuptools
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Install Python
+        run: uv python install
       - name: Install project dependencies
-        run: python -m pip install -r requirements.txt
-      - name: Install pylint
-        run: python -m pip install pylint
+        run: uv sync --locked
       - name: Run linter
-        run: python -m pylint --output-format colorized --max-line-length 88 ./rdfproxy
+        run: uv run pylint --output-format colorized --max-line-length 88 ./rdfproxy
   test:
     name: Test
     needs: lint
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-24.04
@@ -47,10 +40,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-      - name: Update pip and setuptools
-        run: python -m pip install --upgrade pip setuptools
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Install Python
+        run: uv python install
       - name: Install project dependencies
-        run: python -m pip install -r requirements.txt
+        run: uv sync --no-dev --locked
       - name: Replace Podman SPARQL endpoint URL with Docker equivalent
         run: sed -i -e 's/jena.dns.podman/jena/g' example/compose.yml
       - name: Create containers
@@ -101,13 +96,20 @@ jobs:
           grep -q 'Location: http://localhost:8000/document' data.txt
       - name: Test data publishing script
         run: |
-          python cli.py --erase --data ../example/data --queries ../example/queries
-        env:
-          DEBUG: 1
-          QUERY_ENDPOINT: http://localhost:3030/example/sparql
-          UPDATE_ENDPOINT: http://localhost:3030/example/update
-          GRAPH_IDENTIFIER: http://localhost:8000/
-        working-directory: ./rdfproxy
+          docker run \
+            --rm \
+            --entrypoint /opt/venv/bin/python \
+            --volume ./example/data:/tmp/data:ro \
+            --volume ./example/queries:/tmp/queries:ro \
+            --network host \
+            --env DEBUG=1 \
+            --env QUERY_ENDPOINT=http://localhost:3030/example/sparql \
+            --env UPDATE_ENDPOINT=http://localhost:3030/example/update \
+            --env GRAPH_IDENTIFIER=http://localhost:8000/ \
+            example-rdfproxy:latest cli.py \
+            --erase \
+            --data /tmp/data \
+            --queries /tmp/queries
       - name: Test document inserted by data publish
         run: |
           curl --fail-with-body --output data.ttl --header "accept: text/turtle" http://localhost:8000/published
