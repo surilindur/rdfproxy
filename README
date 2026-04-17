@@ -60,6 +60,7 @@ The following additional environment variables exist:
 * USER_AGENT: The full HTTP User-Agent header value to use, if provided
 * PREFIX_PATH: The path to a JSON document with prefixes to use
 * TEMPLATE_PATH: The path to HTML templates, defaults to /usr/share/rdfgpp
+* TEMPLATE_EXTENSION: The template file extension, defaults to .jinja2
 
 Additionally, the Flask application configuration is loaded from the default
 prefixed environment variables.

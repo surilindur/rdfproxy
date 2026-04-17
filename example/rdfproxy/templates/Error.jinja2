@@ -1,4 +1,4 @@
-{% extends "_layout.html" %}
+{% extends "_layout.jinja2" %}
 {% set schema_description = graph.namespace_manager.expand_curie("schema:description") %}
 {% block main %}
 <pre>{{ graph.value(graph.identifier, schema_description) }}</pre>

@@ -46,6 +46,7 @@ from config import SDONew
 from config import MIMETYPE_KEYWORDS
 from config import MIMETYPE_PRIORITY
 from config import TEMPLATE_PATH
+from config import TEMPLATE_EXTENSION
 
 mistune_renderer = HTMLRenderer()
 mistune_markdown = Markdown(
@@ -85,8 +86,8 @@ def get_available_templates(host: str) -> Mapping[str, Path]:
     debug(f"Using templates for host {host} from {host_template_path}")
 
     for fp in host_template_path.iterdir():
-        if fp.name.endswith(".html"):
-            templates[fp.name.removesuffix(".html")] = fp
+        if fp.name.endswith(TEMPLATE_EXTENSION):
+            templates[fp.name.removesuffix(TEMPLATE_EXTENSION)] = fp
 
     return templates
 
