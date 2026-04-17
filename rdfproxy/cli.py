@@ -74,7 +74,10 @@ def publish_data(args: type[RDFUpdateNamespace]) -> None:
     info(f"Graph {graph.identifier.n3()} has {len(graph)} triples after publishing")
 
     if args.queries:
-        for fp in iterate_by_extension(path=args.queries, extensions=QUERY_EXTENSIONS):
+        for fp in sorted(
+            iterate_by_extension(path=args.queries, extensions=QUERY_EXTENSIONS),
+            key=lambda p: p.name,
+        ):
             debug(f"Executing {fp}")
             with open(fp, "r", encoding="utf-8") as query_file:
                 graph.update(query_file.read())
