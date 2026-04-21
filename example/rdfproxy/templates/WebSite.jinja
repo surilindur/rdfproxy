@@ -1,6 +1,5 @@
-{% extends "_layout.jinja2" %}
+{% extends "_layout.jinja" %}
 {% set schema_description = graph.namespace_manager.expand_curie("schema:description") %}
 {% block main %}
-<h1>Loopback</h1>
 <p>{{ graph.value(graph.identifier, schema_description) }}</p>
 {% endblock %}
