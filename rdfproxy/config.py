@@ -47,7 +47,7 @@ RDF_EXTENSIONS: tuple[str, ...] = (".ttl", ".nq", ".nt", ".rdf", ".jsonld")
 QUERY_EXTENSIONS: tuple[str, ...] = (".rq", ".sparql")
 
 TEMPLATE_PATH = Path(getenv("TEMPLATE_PATH", "/usr/share/rdfproxy/templates")).resolve()
-TEMPLATE_EXTENSION = getenv("TEMPLATE_EXTENSION", ".jinja2")
+TEMPLATE_EXTENSION = getenv("TEMPLATE_EXTENSION", ".jinja")
 
 class SDONew(SDO):  # pylint: disable=too-few-public-methods
     """Temporary helper declaration to include new properties into SDO."""
