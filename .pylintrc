@@ -2,6 +2,7 @@
 fail-under=10
 ignore=.venv
 recursive=yes
+extension-pkg-allow-list=orjson
 
 [FORMAT]
 expected-line-ending-format=LF
