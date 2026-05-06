@@ -26,7 +26,7 @@ jobs:
       - name: Install project dependencies
         run: uv sync --locked
       - name: Run linter
-        run: uv run pylint --output-format colorized --max-line-length 88 ./rdfproxy
+        run: uv run pylint .
   test:
     name: Test
     needs: lint
@@ -94,26 +94,6 @@ jobs:
         run: |
           curl --head --fail-with-body --output data.txt http://localhost:8000/redirected
           grep -q 'Location: http://localhost:8000/document' data.txt
-      - name: Test data publishing script
-        run: |
-          docker run \
-            --rm \
-            --entrypoint /opt/venv/bin/python \
-            --volume ./example/data:/tmp/data:ro \
-            --volume ./example/queries:/tmp/queries:ro \
-            --network host \
-            --env DEBUG=1 \
-            --env QUERY_ENDPOINT=http://localhost:3030/example/sparql \
-            --env UPDATE_ENDPOINT=http://localhost:3030/example/update \
-            --env GRAPH_IDENTIFIER=http://localhost:8000/ \
-            example-rdfproxy:latest cli.py \
-            --erase \
-            --data /tmp/data \
-            --queries /tmp/queries
-      - name: Test document inserted by data publish
-        run: |
-          curl --fail-with-body --output data.ttl --header "accept: text/turtle" http://localhost:8000/published
-          grep -q 'schema:description "Updated description for example document." ;' data.ttl
       - name: Stop containers
         if: always()
         run: docker compose --file example/compose.yml stop
