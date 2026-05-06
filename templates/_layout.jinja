@@ -2,6 +2,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
 <body {% if type %}class="{{ type }}" {% endif %}>
   <header>
     <h1>{{ graph.value(graph.identifier, schema_name) }}</h1>

@@ -1,0 +1,33 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix schema: <https://schema.org/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<http://localhost:8000/> a schema:WebSite ;
+    schema:name "Example website" ;
+    schema:description "Example description here." ;
+    schema:dateModified "2026-05-01T08:30:00+00:00"^^xsd:dateTime .
+
+<http://localhost:8000/#fragment> schema:name "Frontpage fragment" ;
+    schema:description "Example fragment." .
+
+<http://localhost:8000/document> a schema:DigitalDocument ;
+    schema:name "Document" ;
+    schema:description "Example document." .
+
+<http://localhost:8000/markdown> a schema:Statement ;
+    schema:name "Document" ;
+    schema:text """# Example markdown
+
+This should be a list:
+
+* First
+* Second
+* Third
+
+~~This is struck through.~~""" .
+
+<http://localhost:8000/redirected> owl:sameAs <http://localhost:8000/document> .
+
+<http://127.0.0.1:8000/test> a schema:DigitalDocument ;
+    schema:name "Loopback document" ;
+    schema:description "Example loopback document." .
