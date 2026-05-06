@@ -42,6 +42,7 @@ from rdflib.graph import _SubjectType
 from rdflib.graph import _ObjectType
 from rdflib.namespace import RDF
 from rdflib.namespace import SDO
+from rdflib.namespace import OWL
 
 from mistune.markdown import Markdown
 from mistune.plugins.abbr import abbr
@@ -243,6 +244,18 @@ def serve_document(**_) -> Response:
             abort(HTTPStatus.NOT_EXTENDED)
     else:
         result_string = document_graph.serialize(format=mimetype_keywords[g.mimetype])
+
+    # Check if the document has been redirected elsewhere
+    document_same_as = document_graph.value(
+        subject=document_graph.identifier,
+        predicate=OWL.sameAs,
+    )
+
+    if isinstance(document_same_as, URIRef):
+        return Response(
+            status=HTTPStatus.TEMPORARY_REDIRECT,
+            headers={"Location": document_same_as},
+        )
 
     # Determine the modification date of the document, if available
     document_modified = (
