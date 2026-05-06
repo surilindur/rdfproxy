@@ -8,11 +8,12 @@ ENV VIRTUAL_ENV=/opt/venv
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
-ADD ./rdfproxy /opt/rdfproxy
-ADD ./pyproject.toml /opt/rdfproxy/pyproject.toml
-ADD ./uv.lock /opt/rdfproxy/uv.lock
-
 WORKDIR /opt/rdfproxy
+
+ADD ./app.py .
+ADD ./pyproject.toml .
+ADD ./uv.lock .
+ADD ./templates .
 
 RUN uv venv /opt/venv
 RUN uv sync --active --no-dev --all-extras --locked
@@ -21,7 +22,6 @@ FROM base
 
 COPY --from=build /opt/venv /opt/venv
 COPY --from=build /opt/rdfproxy /opt/rdfproxy
-ADD ./example/rdfproxy /usr/share/rdfproxy
 
 WORKDIR /opt/rdfproxy
 
