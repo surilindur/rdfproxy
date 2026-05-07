@@ -261,7 +261,7 @@ def serve_document(**_) -> Response:
     document_modified = (
         document_graph.value(
             subject=document_graph.identifier,
-            predicate=SDO.dateCreated,
+            predicate=SDO.dateModified,
         )
         or document_graph.value(
             subject=document_graph.identifier,
@@ -269,7 +269,7 @@ def serve_document(**_) -> Response:
         )
         or document_graph.value(
             subject=document_graph.identifier,
-            predicate=SDO.dateModified,
+            predicate=SDO.dateCreated,
         )
     )
 
