@@ -1,7 +1,7 @@
 {
   "name": "Alpine Linux Python 3",
   "build": {
-    "dockerfile": "./Dockerfile"
+    "dockerfile": "./Containerfile"
   },
   "postStartCommand": "uv python install && uv sync",
   "customizations": {
