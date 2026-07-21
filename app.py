@@ -198,7 +198,7 @@ def adjust_headers(response: Response) -> Response:
     See: https://datatracker.ietf.org/doc/html/rfc2616#section-7.2.1
     """
 
-    if not response.response:
+    if response.content_length == 0:
         response.headers.remove("Content-Type")
     elif not response.headers.get("Last-Modified"):
         response.headers.set(
