@@ -11,7 +11,7 @@ services:
         # start with 256MB, then go up until 2GB
         JAVA_OPTIONS: -Xms256m -Xmx2048m
         # https://repo1.maven.org/maven2/org/apache/jena/jena-fuseki-server/
-        JENA_VERSION: 6.0.0
+        JENA_VERSION: 6.2.0
     command: --config /fuseki/config.ttl
     container_name: jena
     ports:
