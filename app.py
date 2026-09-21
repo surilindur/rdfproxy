@@ -225,8 +225,22 @@ def serve_document(**_) -> Response:
             convert=True,
         ),
     )
+
     if not document_graph:
         abort(HTTPStatus.NOT_FOUND)
+
+    # Check if the document has been redirected elsewhere
+    document_same_as = document_graph.value(
+        subject=document_graph.identifier,
+        predicate=OWL.sameAs,
+    )
+
+    if isinstance(document_same_as, URIRef):
+        return Response(
+            status=HTTPStatus.TEMPORARY_REDIRECT,
+            headers={"Location": document_same_as},
+        )
+
     if g.mimetype == "text/html":
         try:
             result_string = render_template(
@@ -244,18 +258,6 @@ def serve_document(**_) -> Response:
             abort(HTTPStatus.NOT_EXTENDED)
     else:
         result_string = document_graph.serialize(format=mimetype_keywords[g.mimetype])
-
-    # Check if the document has been redirected elsewhere
-    document_same_as = document_graph.value(
-        subject=document_graph.identifier,
-        predicate=OWL.sameAs,
-    )
-
-    if isinstance(document_same_as, URIRef):
-        return Response(
-            status=HTTPStatus.TEMPORARY_REDIRECT,
-            headers={"Location": document_same_as},
-        )
 
     # Determine the modification date of the document, if available
     document_modified = (
